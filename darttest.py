@@ -46,6 +46,11 @@ class GlucosePredict:
         self.time = time
         # texp = exp(1)
         # self.bolus
+# build q defualt instance of the class as a function
+    def build_instance():
+        return GlucosePredict(carbs=10,inscarbRatio=10,correctionRatio=75,timetotarget=100,timetopeak=60,currentbg=100,targetbg=90,time=4)
+
+
 
     def calculatebolus(self,currentbg,carbs):
         bolus = ((currentbg - targetbg) / correctionRatio) + (carbs / inscarbRatio)
