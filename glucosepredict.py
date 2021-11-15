@@ -68,71 +68,75 @@ class GlucosePredict:
         self.time = time
         # texp = exp(1)
         # self.bolus
-    def minimal():
+    # def minimal():
+    t_0 = time[0]
+    t_end = time[-1]
+    G0 = currentbg
+    k1 = 0.02
+    k2 = 0.02
+    k3 = 1.5e-05
+    params = G0, k1, k2, k3
+    data = pd.read_csv('glucose_insulin.csv', index_col='time')
+
+    def make_system(params,data):
+        G0, k1, k2, k3 = params
         t_0 = time[0]
         t_end = time[-1]
-        G0 = currentbg
-        k1 = 0.02
-        k2 = 0.02
-        k3 = 1.5e-05
-        params = G0, k1, k2, k3
-        data = pd.read_csv('glucose_insulin.csv', index_col='time')
+        Gb = data.glucose[t_0]
+        Ib = data.insulin[t_0]
+        I = interpolate(data.insulin)
+        init = State(G=G0, X=0)
 
-        def make_system(params,data):
-            G0, k1, k2, k3 = params
-            t_0 = time[0]
-            t_end = time[-1]
-            Gb = data.glucose[t_0]
-            Ib = data.insulin[t_0]
-            I = interpolate(data.insulin)
-            init = State(G=G0, X=0)
-
-            return System(init=init, params=params,
+        return System(init=init, params=params,
                           t_0=t_0, t_end=t_end,
                           Gb=Gb, Ib=Ib, I=I, dt=intervals)
 
-        system = make_system(params,data)
+    system = make_system(params,data)
+    def getrise(self,time,currentbg,carbs,):
+        self.rise = self.getcarbs(time)*carbs*correctionRatio/inscarbRatio
+        # st.write(self.rise)
+        return self.rise
 
-        def update_func(t,state,system):
-            G, X = state
-            G0, k1, k2, k3 = system.params
-            I, Ib, Gb = system.I, system.Ib, system.Gb
-            dt = system.dt
-            dGdt = -k1 * (G -Gb) - X*G
-            dXdt = k3 * (I(t) - Ib) - k2 * X
+    def update_func(t,state,system):
+        G, X = state
+        G0, k1, k2, k3 = system.params
+        I, Ib, Gb = system.I, system.Ib, system.Gb
+        dt = system.dt
+        dGdt = -k1 * (G -Gb) - X*G
+        dXdt = k3 * (I(t) - Ib) - k2 * X
 
-            # G += dGdt * dt
-            # G = getrise(t,G,carbs)
-            X += dXdt * dt
+        G += dGdt * dt
+        # G = getrise(t,G,carbs)
+        X += dXdt * dt
 
-            return State(G=G, X=X)
+        return State(G=G, X=X)
 
-        update_func(system.t_0, system.init, system)
+    update_func(system.t_0, system.init, system)
 
-        def run_simulation(system, update_func):
-            t_array = linrange(system.t_0, system.t_end, system.dt)
-            n = len(t_array)
-            frame = TimeFrame(index=t_array, columns=system.init.index)
-            frame.iloc[0] = system.init
-            for i in range(n-1):
-                t = t_array[i]
-                state = frame.iloc[i]
-                frame.iloc[i+1] = update_func(t, state, system)
+    def run_simulation(system, update_func):
+        t_array = linrange(system.t_0, system.t_end, system.dt)
+        n = len(t_array)
+        frame = TimeFrame(index=t_array, columns=system.init.index)
+        frame.iloc[0] = system.init
+        for i in range(n-1):
+            t = t_array[i]
+            state = frame.iloc[i]
+            frame.iloc[i+1] = update_func(t, state, system)
 
-            return frame
+        return frame
 
-        results = run_simulation(system, update_func)
-        st.dataframe(results.G)
-        data.glucose.plot(style='o', alpha=0.5, label='glucose data')
-        results.G.plot(style='-', color='C0', label='simulation')
+    results = run_simulation(system, update_func)
+    st.dataframe(results.G)
+    data.glucose.plot(style='o', alpha=0.5, label='glucose data')
+    results.G.plot(style='-', color='C0', label='simulation')
 
-        decorate(xlabel='Time (min)',
+    decorate(xlabel='Time (min)',
          ylabel='Concentration (mg/dL)')
-        list2.append(results.G)
+    list2.append(results.G)
 # Show this plot
-        st.pyplot()
-        return results.G
-    minimal()
+    st.pyplot()
+    # return results.G
+    # minimal()
     st.dataframe(list2)
 
 # build q defualt instance of the class as a function
