@@ -9,6 +9,7 @@ import plotly.graph_objects as go
 from math import exp
 from os.path import basename, exists
 
+
 st.set_option('deprecation.showPyplotGlobalUse', False)
 st.header("Glucose Prediction")
 # create columns in streamlit for inputs
@@ -19,8 +20,7 @@ def download(url):
         local, _ = urlretrieve(url, filename)
         print("Downloaded",  local)
 
-download('https://github.com/AllenDowney/ModSimPy/raw/master/' +
-         'modsim.py')
+download('https://github.com/AllenDowney/ModSimPy/blob/master/modsim.py')
 
 from modsim import *
 # create number inputs for the class in streamlit
@@ -76,7 +76,7 @@ class GlucosePredict:
     k2 = 0.02
     k3 = 1.5e-05
     params = G0, k1, k2, k3
-    data = pd.read_csv('glucose_insulin.csv', index_col='time')
+    data = pd.read_csv('C:\\Users\\perez\\Documents\\GitHub\\predict\\glucose_insulin.csv', index_col='time')
 
     def make_system(params,data):
         G0, k1, k2, k3 = params
