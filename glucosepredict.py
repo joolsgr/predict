@@ -76,7 +76,8 @@ class GlucosePredict:
     k2 = 0.02
     k3 = 1.5e-05
     params = G0, k1, k2, k3
-    data = pd.read_csv('C:\\Users\\perez\\Documents\\GitHub\\predict\\glucose_insulin.csv', index_col='time')
+    data = pd.read_csv('/Users/matthewperez/Documents/GitHub/predict/glucose_insulin.csv')
+    #data = pd.read_csv('C:\\Users\\perez\\Documents\\GitHub\\predict\\glucose_insulin.csv', index_col='time')
 
     def make_system(params,data):
         G0, k1, k2, k3 = params
